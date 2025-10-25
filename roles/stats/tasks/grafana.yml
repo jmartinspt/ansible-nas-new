@@ -44,6 +44,12 @@
         env:
           GF_PLUGINS_ENABLE_ALPHA: "true"
           GF_UNIFIED_ALERTING_ENABLED: "true"
+          GF_SMTP_ENABLED: "{{ stats_grafana_smpt_enabled }}"
+          GF_SMTP_HOST:  "{{ stats_grafana_smpt_host }}"
+          GF_SMTP_USER:  "{{ stats_grafana_smpt_user }}"
+          GF_SMTP_PASSWORD:  "{{ stats_grafana_smpt_password }}"
+          GF_SMTP_FROM_ADDRESS:  "{{ stats_grafana_smpt_from_address }}"
+          GF_SMTP_FROM_NAME:  "{{ stats_grafana_smpt_from_name }}"         
         restart_policy: unless-stopped
         memory: 1g
         labels:

@@ -1,0 +1,20 @@
+[http]
+  [http.routers]
+{% for name, svc in traefik_static_services.items() %}
+    [http.routers.{{ name }}]
+      entrypoints = ["websecure"]
+      rule = "Host(`{{ name }}.{{ ansible_nas_domain }}`)"
+      service = "{{ name }}"
+      [http.routers.{{ name }}.tls]
+        certResolver = "letsencrypt"
+        [[http.routers.{{ name }}.tls.domains]]
+          main = "{{ ansible_nas_domain }}"
+          sans = ["*.{{ ansible_nas_domain }}"]
+{% endfor %}
+
+  [http.services]
+{% for name, svc in traefik_static_services.items() %}
+    [http.services.{{ name }}.loadBalancer]
+      [[http.services.{{ name }}.loadBalancer.servers]]
+        url = "{{ svc.url }}"
+{% endfor %}

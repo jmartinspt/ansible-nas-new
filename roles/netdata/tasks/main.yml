@@ -20,7 +20,7 @@
           - "/sys:/host/sys:ro"
           - "/var/run/docker.sock:/var/run/docker.sock:ro"
         env:
-          PGID: "{{ docker_group.gid }}"
+          PGID: "{{ docker_group.gid|string }}"
         capabilities:
           - SYS_PTRACE
         security_opts:
@@ -34,6 +34,11 @@
           traefik.http.routers.netdata.tls.domains[0].main: "{{ ansible_nas_domain }}"
           traefik.http.routers.netdata.tls.domains[0].sans: "*.{{ ansible_nas_domain }}"
           traefik.http.services.netdata.loadbalancer.server.port: "19999"
+          homepage.group: Monitoring
+          homepage.name: Netdata
+          homepage.icon: netdata.svg
+          homepage.href: "http://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ netdata_port }}"
+          homepage.description: Glances            
   when: netdata_enabled is true
 
 - name: Stop Netdata

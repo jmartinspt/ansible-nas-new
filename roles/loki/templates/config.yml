@@ -35,8 +35,8 @@ ruler:
     s3:
       bucketnames: loki-ruler
 
-chunk_store_config:
-  max_look_back_period: {{ loki_log_retention }}
+limits_config:
+  max_query_lookback: {{ loki_log_retention }}
 
 table_manager:
   retention_deletes_enabled: true

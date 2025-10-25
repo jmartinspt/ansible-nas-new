@@ -1,0 +1,1 @@
+dotenv run ansible-playbook -i inventories/infra/inventory nas.yml -b -K -t portainer,traefik,cloudflare_ddns

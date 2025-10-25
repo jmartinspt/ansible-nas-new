@@ -16,10 +16,10 @@
         - samba
         - skip_ansible_lint
 
-    - role: geerlingguy.nfs
-      tags:
-        - nfs
-        - skip_ansible_lint
+    # - role: geerlingguy.nfs
+    #   tags:
+    #     - nfs
+    #     - skip_ansible_lint
 
     - role: geerlingguy.docker
       vars:
@@ -225,6 +225,10 @@
       tags:
         - lidarr
 
+    - role: stats
+      tags:
+        - stats        
+
     - role: loki
       tags:
         - loki
@@ -385,10 +389,6 @@
       tags:
         - speedtest-tracker
 
-    - role: stats
-      tags:
-        - stats
-
     - role: syncthing
       tags:
         - syncthing
@@ -464,3 +464,7 @@
     - role: znc
       tags:
         - znc
+
+    - role: ha-voice
+      tags:
+        - ha_voice        

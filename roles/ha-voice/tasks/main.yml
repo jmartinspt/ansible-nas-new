@@ -1,0 +1,120 @@
+---
+- name: Start Ha Voice
+  block:
+  - name: Create base directories
+    file:
+      path: "{{ ha_voice_data_directory }}/{{ item }}"
+      state: directory
+      mode: "0755"
+    loop:
+      - piper
+      - stt
+      - wakeword
+      - ollama
+      - vosk_models
+
+  - name: Download Vosk model (if chosen)
+    when: stt_engine == 'vosk'
+    get_url:
+      url: "{{ vosk_model_url }}"
+      dest: "{{ ha_voice_data_directory }}/vosk_models/{{ vosk_model_name }}.zip"
+      mode: "0644"
+
+  - name: Extract Vosk model
+    when: stt_engine == 'vosk'
+    unarchive:
+      src: "{{ ha_voice_data_directory }}/vosk_models/{{ vosk_model_name }}.zip"
+      dest: "{{ ha_voice_data_directory }}/stt"
+      remote_src: true
+
+  - name: Run Piper container (TTS)
+    community.docker.docker_container:
+      name: piper
+      image: rhasspy/wyoming-piper:latest
+      memory: "{{ wyoming_piper_memory }}"
+      restart_policy: unless-stopped
+      command: >
+        --voice {{ piper_voice }}
+        --uri tcp://0.0.0.0:{{ wyoming_piper_port }}
+      published_ports:
+        - "{{ wyoming_piper_port }}:{{ wyoming_piper_port }}"
+      volumes:
+        - "{{ ha_voice_data_directory }}/piper:/data"
+
+  - name: Run Vosk container (STT)
+    when: stt_engine == 'vosk'
+    community.docker.docker_container:
+      name: vosk
+      image: rhasspy/wyoming-vosk:latest
+      memory: "{{ wyoming_stt_memory }}"
+      restart_policy: unless-stopped
+      command: >
+        --uri tcp://0.0.0.0:{{ wyoming_stt_port }}
+        --data-dir /data/{{ vosk_model_name }}
+        --language pt
+      published_ports:
+        - "{{ wyoming_stt_port }}:{{ wyoming_stt_port }}"
+      volumes:
+        - "{{ ha_voice_data_directory }}/stt:/data"
+
+  - name: Run Whisper container (STT)
+    when: stt_engine == 'whisper'
+    community.docker.docker_container:
+      name: whisper
+      image: rhasspy/wyoming-whisper:latest
+      memory: "{{ wyoming-whisper_memory }}"
+      restart_policy: unless-stopped
+      command: >
+        --uri tcp://0.0.0.0:{{ wyoming_stt_port }}
+        --model tiny-int8 --language pt
+      published_ports:
+        - "{{ wyoming_stt_port }}:{{ wyoming_stt_port }}"
+      volumes:
+        - "{{ ha_voice_data_directory }}/stt:/data"
+
+  - name: Run OpenWakeWord container (wake word detection)
+    community.docker.docker_container:
+      name: openwakeword
+      image: rhasspy/wyoming-openwakeword:latest
+      memory: "{{ wyoming_wakeword_memory }}"
+      restart_policy: unless-stopped
+      command: >
+        --uri tcp://0.0.0.0:{{ wyoming_wakeword_port }}
+        --preload-model ok_nabu
+      published_ports:
+        - "{{ wyoming_wakeword_port }}:{{ wyoming_wakeword_port }}"
+
+  - name: Run Ollama container (local LLM)
+    community.docker.docker_container:
+      name: ollama
+      image: ollama/ollama:latest
+      memory: "{{ ollama_memory }}"
+      restart_policy: unless-stopped
+      published_ports:
+        - "{{ ollama_port }}:11434"
+      volumes:
+        - "{{ ha_voice_data_directory }}/ollama:/root/.ollama"
+      env:
+        OLLAMA_NUM_PARALLEL: "1"
+
+  # - name: Preload Olama models inside running container
+  #   when: ollama_models | length > 0  
+  #   community.docker.docker_container_exec:
+  #     container: ollama
+  #     command: "ollama pull {{ item }}"
+  #   loop: "{{ ollama_models }}"
+  when: ha_voice_enabled is true
+
+- name: Stop Ha Voice
+  block:
+  - name: Stop and remove voice containers
+    community.docker.docker_container:
+      name: "{{ item }}"
+      state: absent
+    loop:
+      - piper
+      - vosk
+      - whisper
+      - openwakeword
+      - ollama  
+  when: ha_voice_enabled is false          

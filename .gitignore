@@ -10,6 +10,7 @@ roles/geerlingguy.docker
 roles/geerlingguy.nfs
 website/.docusaurus
 website/node_modules
+.env
 
 # Vim
 [._]sw[a-p]

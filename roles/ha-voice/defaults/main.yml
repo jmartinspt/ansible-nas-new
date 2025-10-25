@@ -1,0 +1,36 @@
+---
+ha_voice_enabled: false
+ha_voice_available_externally: false
+
+# directories
+ha_voice_docker_image: linuxserver/ha_voice:latest
+ha_voice_data_directory: "{{ docker_home }}/ha_voice"
+
+# specs
+wyoming_piper_memory: 512m
+wyoming_stt_memory: 512m
+wyoming_wakeword_memory: 256m
+wyoming-whisper_memory: 1g
+ollama_memory: 4g
+
+ha_voice_container_name: ha-voice
+
+wyoming_piper_port: 10200
+wyoming_stt_port: 10300
+wyoming_wakeword_port: 10400
+ollama_port: 11434
+
+# Piper TTS voice (Portuguese example)
+piper_voice: "pt_PT-tugão-medium"
+
+# Choose STT engine: "vosk" (lightweight) or "whisper" (better quality)
+stt_engine: "vosk"
+
+# Vosk STT model
+vosk_model_url: "https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip"
+vosk_model_name: "vosk-model-small-pt-0.3"
+
+# Ollama models to preload
+ollama_models:
+  - "phi3:mini"
+  - "llama3.2:3b"
